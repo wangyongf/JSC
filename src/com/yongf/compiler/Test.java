@@ -11,6 +11,10 @@
 
 package com.yongf.compiler;
 
+import com.yongf.compiler.processor.CodeReader;
+import com.yongf.compiler.processor.Lex;
+import com.yongf.compiler.processor.LexicalAnalyzer;
+
 /**
  * description
  *
@@ -21,9 +25,19 @@ package com.yongf.compiler;
  */
 public class Test {
 
-    private static String CODE = "/home/scottwang/桌面/code.txt";
+    private static String FILE_NAME = "scc.txt";
+    private static String CODE = "/home/scottwang/桌面/" + FILE_NAME;
 
     public static void main(String[] args) {
+//        oldLex();
+
+        CodeReader reader = new CodeReader(CODE);
+        String code = reader.read();
+        Lex lex = new Lex(code, FILE_NAME);
+        lex.scan();
+    }
+
+    private static void oldLex() {
         CodeReader reader = new CodeReader(CODE);
         String sourcecode = reader.read();
         LexicalAnalyzer analyzer = new LexicalAnalyzer(sourcecode);

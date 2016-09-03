@@ -9,7 +9,7 @@
  *  1.0         Scott Wang         16-9-1             新增：Create	
  */
 
-package com.yongf.compiler;
+package com.yongf.compiler.processor;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
