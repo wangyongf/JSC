@@ -562,16 +562,16 @@ public class Lex {
     public void colorful(int lexState) {
         switch (lexState) {
             case ILexState.LEX_NORMAL:
-                if (syn >= TK_INDENT) {         //标识符为灰色
-
-                } else if (syn >= KW_CHAR) {        //关键字为绿色
-
+                String p = getTokenStr(syn);
+                if (syn >= TK_INDENT) {         //标识符为绿色
+                    p = "\033[32m" + p + "\033[0m";
+                } else if (syn >= KW_CHAR) {        //关键字为红色
+                    p = "\033[31m" + p + "\033[0m";
                 } else if (syn >= TK_CINT) {        //常量为黄色
-
+                    p = "\033[33m" + p + "\033[0m";
                 } else {            //算符界符的颜色
 
                 }
-                String p = getTokenStr(syn);
                 System.out.print(p);
                 break;
         }
