@@ -195,7 +195,6 @@ public class Lex {
         getChar();
         while (curIndex < sourceCode.length()) {
             scanUnit();
-            colorful(LEX_NORMAL);
         }
         System.out.println("\n代码行数: " + lineNumber + "行");
         System.out.println("单词表大小: " + tkTable.size());

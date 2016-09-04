@@ -61,7 +61,7 @@ public class Test {
         CodeReader reader = new CodeReader(CODE);
         String code = reader.read();
         Lex lex = new Lex(code, FILE_NAME);
-        lex.scan();
+        lex.scan0();
     }
 
     private static void oldLex() {
