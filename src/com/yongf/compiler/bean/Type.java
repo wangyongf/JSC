@@ -21,6 +21,11 @@ package com.yongf.compiler.bean;
  */
 public class Type {
 
-    int t;                      //数据类型
-    Symbol ref;             //引用符号
+    public int t;                      //数据类型编码(TypeCode)
+    public Symbol ref;             //引用符号
+
+    public Type(int t, Symbol ref) {
+        this.t = t;
+        this.ref = ref;
+    }
 }

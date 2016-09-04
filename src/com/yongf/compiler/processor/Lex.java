@@ -11,10 +11,13 @@
 
 package com.yongf.compiler.processor;
 
+import com.yongf.compiler.bean.Symbol;
 import com.yongf.compiler.bean.TkWord;
+import com.yongf.compiler.bean.Type;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import static com.yongf.compiler.bean.ILexState.LEX_NORMAL;
 import static com.yongf.compiler.bean.IStorageClass.*;
@@ -95,12 +98,195 @@ public class Lex {
      */
     private int syntaxLevel = 0;
 
+    /**
+     * 错误信息
+     */
     private StringBuilder errorMsg = new StringBuilder();
+
+    /**
+     * 全局符号栈
+     */
+    private Stack<Symbol> globalSymStack = new Stack<>();
+    /**
+     * 局部符号栈
+     */
+    private Stack<Symbol> localSymStack = new Stack<>();
 
     public Lex(String sourceCode, String fileName) {
         this.sourceCode = sourceCode;
         this.fileName = fileName;
     }
+
+
+    ///////////////////////////////////////符号表的相关操作 - START//////////////////////////////////
+
+    /**
+     * 将符号放进符号栈中
+     *
+     * @param ss
+     * @param v
+     * @param type
+     * @param c
+     * @return
+     */
+    Symbol directPushSymbol(Stack<Symbol> ss, int v, Type type, int c) {
+        Symbol s = new Symbol(v, 0, c, new Type(type.t, type.ref), null, null);
+        ss.add(s);
+        return s;
+    }
+
+    /**
+     * 将符号放入符号栈中，动态判断是放入全局符号栈还是局部符号栈
+     *
+     * @param v    符号编号
+     * @param type 符号数据类型
+     * @param r    符号存储类型
+     * @param c    符号关联值
+     * @return
+     */
+    Symbol pushSymbol(int v, Type type, int r, int c) {
+        Stack<Symbol> ss;
+        if (localSymStack.isEmpty()) {
+            ss = localSymStack;
+        } else {
+            ss = globalSymStack;
+        }
+        Symbol ps = directPushSymbol(ss, v, type, c);
+        ps.r = r;
+
+        //不记录结构体成员及匿名符号
+        if (((v & SC_STRUCT) != 0) || v < SC_ANOM) {
+            //更新单词sym_struct或sym_identifier字段
+            TkWord ts = tkTable.get(v & ~SC_STRUCT);
+            Symbol pps;
+            if ((v & SC_STRUCT) != 0) {
+                pps = ts.struct;
+            } else {
+                pps = ts.identifier;
+            }
+            ps.prev_tok = pps;
+            if ((v & SC_STRUCT) != 0) {
+                ts.struct = ps;
+            } else {
+                ts.identifier = ps;
+            }
+        }
+        return ps;
+    }
+
+    /**
+     * 将函数符号放入全局符号表中
+     *
+     * @param v    符号编号
+     * @param type 符号数据类型
+     * @return
+     */
+    Symbol pushFuncSymbol(int v, Type type) {
+        Symbol s = directPushSymbol(globalSymStack, v, type, 0);
+
+        Symbol ps = tkTable.get(v).identifier;
+        //同名符号，函数符号放在最后
+        while (ps.prev_tok != null) {
+            ps = ps.prev_tok;
+        }
+        s.prev_tok = null;
+        ps.prev_tok = s;
+        return s;
+    }
+
+    /**
+     * 往符号表中加入变量
+     *
+     * @param type
+     * @param r
+     * @param v
+     * @param addr
+     * @return
+     */
+    Symbol putVarSymbol(Type type, int r, int v, int addr) {
+        Symbol sym = null;
+        if ((r & SC_VALMASK) == SC_LOCAL) {             //局部变量
+            sym = pushSymbol(v, type, r, addr);
+        } else if ((v != 0) && ((r & SC_VALMASK) == SC_GLOBAL)) {           //全局变量
+            sym = searchSymbol(v);
+            if (sym != null) {
+                ErrorHandler.error(errorMsg, fileName, lineNumber,
+                        "重复定义\n", tkTable);
+            } else {
+                sym = pushSymbol(v, type, r | SC_SYM, 0);
+            }
+        }
+        //else字符串常量符号
+        return sym;
+    }
+
+    /**
+     * 弹出栈中符号直到栈顶符号为b
+     *
+     * @param ptop 符号栈
+     * @param b    期待的栈顶
+     */
+    private void popSymbol(Stack<Symbol> ptop, Symbol b) {
+        Symbol s = ptop.peek();
+        while (s != b) {
+            int v = s.v;
+            Symbol ps;
+            //更新单词表中的sym_struct, sym_identifier
+            if ((v & SC_STRUCT) != 0 || v < SC_ANOM) {
+                TkWord ts = tkTable.get(v & ~SC_STRUCT);
+                if ((v & SC_STRUCT) != 0) {
+                    ts.struct = s.prev_tok;
+                } else {
+                    ts.identifier = s.prev_tok;
+                }
+            }
+            if (ptop.size() > 0) {
+                ptop.pop();
+            }
+            s = ptop.size() > 0 ? ptop.peek() : null;
+        }
+    }
+
+    /**
+     * 将节名称放入全局符号表
+     *
+     * @param section 节名称
+     * @param c
+     * @return
+     */
+    private Symbol putSectionSymbol(String section, int c) {
+        return null;
+    }
+
+    /**
+     * 查找结构定义
+     *
+     * @param v 符号编号
+     * @return
+     */
+    private Symbol searchStruct(int v) {
+        if (v > tkTable.size()) {
+            return null;
+        } else {
+            return tkTable.get(v).struct;
+        }
+    }
+
+    /**
+     * 查找符号定义
+     *
+     * @param v 符号编号
+     * @return 如果存在，已经存在的符号定义；否则返回null
+     */
+    private Symbol searchSymbol(int v) {
+        if (v > tkTable.size()) {
+            return null;
+        } else {
+            return tkTable.get(v).identifier;
+        }
+    }
+
+    ///////////////////////////////////////符号表的相关操作 - END//////////////////////////////////
 
     /**
      * 词法分析初始化

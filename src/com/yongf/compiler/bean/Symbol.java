@@ -21,10 +21,19 @@ package com.yongf.compiler.bean;
  */
 public class Symbol {
 
-    int v;                  //符号的单词编码
-    int r;                     //符号存储类型
-    int c;                      //符号关联值
-    Type type;             //符号的数据类型
-    Symbol next;        //关联的其他符号
-    Symbol prev_tok;                //指向前一定义的同名符号
+    public int v;                  //符号的单词编码
+    public int r;                     //符号存储类型(StorageClass)
+    public int c;                      //符号关联值
+    public Type type;             //符号的数据类型
+    public Symbol next;        //关联的其他符号
+    public Symbol prev_tok;                //指向前一定义的同名符号
+
+    public Symbol(int v, int r, int c, Type type, Symbol next, Symbol prev_tok) {
+        this.v = v;
+        this.r = r;
+        this.c = c;
+        this.type = type;
+        this.next = next;
+        this.prev_tok = prev_tok;
+    }
 }
