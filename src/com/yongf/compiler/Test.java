@@ -31,6 +31,33 @@ public class Test {
     public static void main(String[] args) {
 //        oldLex();
 
+        newLex();
+    }
+
+    private static void other() {
+        String s = "2";
+        changeString(s);
+        System.out.println("s = " + s);
+    }
+
+    /**
+     * 通过赋值的方式是无法直接改变String类型的值的！
+     * @param str
+     */
+    private static void changeString(String str) {
+        str = str + "1";
+    }
+
+    /**
+     * 曲线救国的方式修改基本类型变量的值
+     *
+     * @param i 存放待修改变量的数组容器
+     */
+    private static void change(int[] i) {
+        i[0] = 3;
+    }
+
+    private static void newLex() {
         CodeReader reader = new CodeReader(CODE);
         String code = reader.read();
         Lex lex = new Lex(code, FILE_NAME);

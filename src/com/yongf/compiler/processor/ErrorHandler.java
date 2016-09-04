@@ -37,17 +37,19 @@ public class ErrorHandler {
      * @param msg        错误信息
      * @param tkTable    单词表(用于输出错误信息)
      */
-    public static void exception(int stage, int level, String fileName, int lineNumber,
+    public static void exception(StringBuilder errMsg, int stage, int level, String fileName, int lineNumber,
                                  String msg, List<TkWord> tkTable) {
         if (stage == IWorkStage.STAGE_COMPILE) {
             if (level == IErrorLevel.LEVEL_WARNING) {
-                System.out.println(fileName + "(第" + lineNumber + "行): 编译警告: " + msg + "!");
+                errMsg.append(fileName + "(第" + lineNumber + "行): 编译警告: " + msg + "!\n");
             } else {
-                System.out.println(fileName + "(第" + lineNumber + "行): 编译错误: " + msg + "!");
+                errMsg.append(fileName + "(第" + lineNumber + "行): 编译错误: " + msg + "!\n");
+                System.out.print("\n\n" + errMsg.toString());
                 System.exit(120);
             }
         } else {
-            System.out.println("链接错误: " + msg + "!");
+            errMsg.append("链接错误: " + msg + "!\n");
+            System.out.print("\n\n" + errMsg.toString());
             System.exit(110);
         }
     }
@@ -60,9 +62,9 @@ public class ErrorHandler {
      * @param msg        错误信息
      * @param tkTable    单词表
      */
-    public static void warning(String fileName, int lineNumber, String msg,
+    public static void warning(StringBuilder errMsg, String fileName, int lineNumber, String msg,
                                List<TkWord> tkTable) {
-        exception(IWorkStage.STAGE_COMPILE, IErrorLevel.LEVEL_WARNING,
+        exception(errMsg, IWorkStage.STAGE_COMPILE, IErrorLevel.LEVEL_WARNING,
                 fileName, lineNumber, msg, tkTable);
     }
 
@@ -74,9 +76,9 @@ public class ErrorHandler {
      * @param msg        错误信息
      * @param tkTable    单词表
      */
-    public static void error(String fileName, int lineNumber, String msg,
+    public static void error(StringBuilder errMsg, String fileName, int lineNumber, String msg,
                              List<TkWord> tkTable) {
-        exception(IWorkStage.STAGE_COMPILE, IErrorLevel.LEVEL_ERROR,
+        exception(errMsg, IWorkStage.STAGE_COMPILE, IErrorLevel.LEVEL_ERROR,
                 fileName, lineNumber, msg, tkTable);
     }
 
@@ -88,8 +90,8 @@ public class ErrorHandler {
      * @param msg        错误信息
      * @param tkTable    单词表
      */
-    public static void expect(String fileName, int lineNumber, String msg,
+    public static void expect(StringBuilder errMsg, String fileName, int lineNumber, String msg,
                               List<TkWord> tkTable) {
-        error(fileName, lineNumber, "缺少" + msg, tkTable);
+        error(errMsg, fileName, lineNumber, "缺少" + msg, tkTable);
     }
 }
